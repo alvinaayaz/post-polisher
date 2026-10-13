@@ -12,7 +12,7 @@
 <meta property="og:url" content="https://alvinaayaz.github.io/post-polisher/">
 <meta property="og:title" content="LinkedIn Post Polisher: turn rough notes into a clear post">
 <meta property="og:description" content="Turn rough notes into a clear LinkedIn post. Free, runs in your browser, and your notes never leave your device.">
-<meta property="og:image" content="https://alvinaayaz.github.io/post-polisher/public/og-image.png?v=1">
+<meta property="og:image" content="https://alvinaayaz.github.io/post-polisher/public/og-image.png?v=3">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -21,7 +21,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="LinkedIn Post Polisher: turn rough notes into a clear post">
 <meta name="twitter:description" content="Turn rough notes into a clear LinkedIn post. Free, runs in your browser, and your notes never leave your device.">
-<meta name="twitter:image" content="https://alvinaayaz.github.io/post-polisher/public/og-image.png?v=1">
+<meta name="twitter:image" content="https://alvinaayaz.github.io/post-polisher/public/og-image.png?v=3">
 <meta name="twitter:image:alt" content="LinkedIn Post Polisher: a rough-notes-to-post tool shown next to a polished post preview.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a66c2'/%3E%3Ctext x='32' y='44' font-size='34' font-weight='800' text-anchor='middle' fill='white' font-family='sans-serif'%3Ein%3C/text%3E%3C/svg%3E">
 <title>LinkedIn Post Polisher</title>
@@ -256,7 +256,8 @@ details.add input{width:100%;margin-top:8px;font:inherit;color:var(--text);backg
   function cap(x){return x.charAt(0).toUpperCase()+x.slice(1)}
   function lc(x){return /^[A-Z][a-z]/.test(x)?x.charAt(0).toLowerCase()+x.slice(1):x}
   function sent(x){return /[.!?]$/.test(x)?x:x+"."}
-  function guess(x){return /feedback|advice|thoughts|input|looking for|want|need help|would love/i.test(x)?"a":/learn|lesson|realiz|mistake|surpris|biggest|taught|never again/i.test(x)?"l":"f"}
+  var CLAUSE=/^(it|this|that|these|those|them|everyone|everybody|you|us|me)\s+(to|will|would|could|can|should|be)\b/i;
+  function guess(x){return /feedback|advice|thoughts|input|would love|^(i\s+|i'm\s+|i am\s+)?(want|would like|need|am looking for|looking for)\b/i.test(x)?"a":/learn|lesson|realiz|mistake|surpris|biggest|taught|never again/i.test(x)?"l":"f"}
   function renderRead(){
     var box=$("readout"),all=$("notes").value.trim().length<15?[]:parse().all;box.innerHTML="";$("readbox").hidden=!all.length;
     all.forEach(function(it){
@@ -305,7 +306,7 @@ details.add input{width:100%;margin-top:8px;font:inherit;color:var(--text);backg
     if(ask){
       var a=ask.replace(/^(I\s+)?(want|would like|need|am looking for|looking for)\s+/i,"");
       var AL={"Professional":"I'm looking for ","Storytelling":"I'd love to get ","Casual":"Would love ","Bold & punchy":"I want ","Humble":"I'd really appreciate "};
-      out.push(a===ask?sent(ask):/^to\s/i.test(a)?"I'd like "+lc(a)+".":AL[t]+lc(a)+".");
+      out.push(a===ask?sent(ask):(/^to\s/i.test(a)||CLAUSE.test(a))?"I'd like "+lc(a)+".":AL[t]+lc(a)+".");
     }
     if($("cta").checked){if(!ask||sel.aud!=="General")out.push((emo?"\ud83d\udcac ":"")+(QA[sel.aud]||(QT[sel.type]||Q[t])[ver%2]));else skipCta=true}
     if($("tags").checked){var tg=tags();if(tg)out.push(tg)}
@@ -389,7 +390,7 @@ details.add input{width:100%;margin-top:8px;font:inherit;color:var(--text);backg
   renderDrafts();
 
   /* planner */
-  function askLine(x){var a=x.replace(/^(I\s+)?(want|would like|need|am looking for|looking for)\s+/i,"");return a!==x?"Ask for "+lc(a):"Ask: "+x}
+  function askLine(x){var a=x.replace(/^(I\s+)?(want|would like|need|am looking for|looking for)\s+/i,"");return a!==x?(/^to\s/i.test(a)||CLAUSE.test(a)?"Say that you'd like "+lc(a):"Ask for "+lc(a)):"Ask: "+x}
   $("plan").onclick=function(){
     if($("notes").value.trim().length<15){setS($("ps"),"Add your notes in the box at the top first.",true);return}
     setS($("ps"),"");
