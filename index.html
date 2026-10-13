@@ -262,7 +262,7 @@ details.add input{width:100%;margin-top:8px;font:inherit;color:var(--text);backg
     var box=$("readout"),all=$("notes").value.trim().length<15?[]:parse().all;box.innerHTML="";$("readbox").hidden=!all.length;
     all.forEach(function(it){
       var row=mk("div","item"),tx=mk("div","tx",it.t),ac=mk("div","acts"),b=mk("button","chip",KN[it.k]),nx={f:"l",l:"a",a:"f"}[it.k];
-      b.type="button";b.title="Click to change to "+KN[nx];
+      b.type="button";b.title="Click to change to "+KN[nx];b.setAttribute("aria-label",KN[it.k]+": "+it.t.slice(0,60)+". Press to change to "+KN[nx]);
       b.onclick=function(){if(nx===guess(it.t))delete OVR[it.t];else OVR[it.t]=nx;renderRead()};
       ac.appendChild(b);row.appendChild(tx);row.appendChild(ac);box.appendChild(row);
     });
@@ -350,8 +350,8 @@ details.add input{width:100%;margin-top:8px;font:inherit;color:var(--text);backg
   }
   function renderHooks(lines){
     var box=$("hookbox");box.innerHTML="";box.hidden=!lines.length;
-    lines.forEach(function(h){
-      var d=mk("div","item"),a=mk("div","acts"),b=mk("button","link","Use");b.type="button";
+    lines.forEach(function(h,hi){
+      var d=mk("div","item"),a=mk("div","acts"),b=mk("button","link","Use");b.type="button";b.setAttribute("aria-label","Use hook "+(hi+1)+": "+h.slice(0,60));
       b.onclick=function(){var cur=$("out").value,m=cur.match(/^[^\n]*?[.!?](?=\s|$)/),nl=cur.indexOf("\n"),i=m?m[0].length:(nl<0?cur.length:nl),rest=cur.slice(i).replace(/^[ \t]+/,"");$("out").value=rest.trim()?h+"\n\n"+dedupe(h,rest):h;if(pos>=0)hist[pos]=$("out").value;stats()};
       a.appendChild(b);d.appendChild(mk("div","tx",h));d.appendChild(a);box.appendChild(d);
     });
@@ -375,7 +375,7 @@ details.add input{width:100%;margin-top:8px;font:inherit;color:var(--text);backg
     a.forEach(function(d,i){
       var row=mk("div","item"),tx=mk("div","tx",titleOf(d.t).slice(0,100)),acts=mk("div","acts");
       tx.appendChild(mk("small","",new Date(d.d).toLocaleDateString()+" \u00b7 "+d.t.trim().split(/\s+/).length+" words"));
-      var o=mk("button","link","Open"),x=mk("button","link del","Delete");o.type=x.type="button";
+      var o=mk("button","link","Open"),x=mk("button","link del","Delete"),tt=titleOf(d.t).slice(0,50);o.type=x.type="button";o.setAttribute("aria-label","Open draft: "+tt);x.setAttribute("aria-label","Delete draft: "+tt);
       o.onclick=function(){$("result").hidden=false;hist.push(d.t);pos=hist.length-1;$("out").value=d.t;stats();nav();renderHooks([]);$("result").scrollIntoView({behavior:"smooth",block:"nearest"})};
       x.onclick=function(){var b=load();b.splice(i,1);store(b);renderDrafts()};
       acts.appendChild(o);acts.appendChild(x);row.appendChild(tx);row.appendChild(acts);box.appendChild(row);
@@ -405,7 +405,7 @@ details.add input{width:100%;margin-top:8px;font:inherit;color:var(--text);backg
       var row=mk("div","item"),tx=mk("div","tx"),acts=mk("div","acts");
       tx.appendChild(mk("div","when",SLOTS[i]));tx.appendChild(mk("div","",it[0]));tx.appendChild(mk("small","",it[1]));
       var key=[F,p.l[0],p.f[1],p.a[0]][i];if(key&&covered(key)){tx.appendChild(mk("small","","Already covered in a post you marked as posted."));row.style.opacity=".65"}else fresh.push(it[0]);
-      var b=mk("button","link","Draft it");b.type="button";
+      var b=mk("button","link","Draft it");b.type="button";b.setAttribute("aria-label","Draft a post from idea: "+it[0]);
       b.onclick=function(){$("notes").value=it[0]+". "+it[1]+".";gate();OVR={};renderRead();window.scrollTo({top:0,behavior:"smooth"});$("notes").focus()};
       acts.appendChild(b);row.appendChild(tx);row.appendChild(acts);box.appendChild(row);
     });
@@ -468,7 +468,7 @@ details.add input{width:100%;margin-top:8px;font:inherit;color:var(--text);backg
     a.forEach(function(d,i){
       var row=mk("div","item"),tx=mk("div","tx",titleOf(d.t).slice(0,100)),acts=mk("div","acts");
       tx.appendChild(mk("small","","Posted "+new Date(d.d).toLocaleDateString()));
-      var o=mk("button","link","Open"),x=mk("button","link del","Remove");o.type=x.type="button";
+      var o=mk("button","link","Open"),x=mk("button","link del","Remove"),tt=titleOf(d.t).slice(0,50);o.type=x.type="button";o.setAttribute("aria-label","Open posted entry: "+tt);x.setAttribute("aria-label","Remove posted entry: "+tt);
       o.onclick=function(){$("result").hidden=false;hist.push(d.t);pos=hist.length-1;$("out").value=d.t;stats();nav();renderHooks([]);$("result").scrollIntoView({behavior:"smooth",block:"nearest"})};
       x.onclick=function(){var b=loadP();b.splice(i,1);storeP(b);renderPosted()};
       acts.appendChild(o);acts.appendChild(x);row.appendChild(tx);row.appendChild(acts);box.appendChild(row);
