@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0a66c2">
+<meta name="description" content="Turn rough notes into a clear LinkedIn post. Runs on your device; nothing is uploaded.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a66c2'/%3E%3Ctext x='32' y='44' font-size='34' font-weight='800' text-anchor='middle' fill='white' font-family='sans-serif'%3Ein%3C/text%3E%3C/svg%3E">
+<title>LinkedIn Post Polisher</title>
+<style>
+:root{--bg:#f3f2ef;--card:#fff;--text:#1d2226;--muted:#667078;--line:#e0dfdc;--soft:#eef3f8;--accent:#0a66c2;--accent2:#004182;--accent-t:#fff;--ok:#1a7f4b;--err:#c0392b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101214;--card:#1b1f23;--text:#e9ebed;--muted:#9ba3ab;--line:#2d3339;--soft:#232a31;--accent:#6bb3f2;--accent2:#9ccbf7;--accent-t:#0a1722;--ok:#5fcf93;--err:#ff8b7b}}
+:root[data-theme="dark"]{--bg:#101214;--card:#1b1f23;--text:#e9ebed;--muted:#9ba3ab;--line:#2d3339;--soft:#232a31;--accent:#6bb3f2;--accent2:#9ccbf7;--accent-t:#0a1722;--ok:#5fcf93;--err:#ff8b7b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:640px;margin:0 auto;padding:28px 16px 56px}
+header{text-align:center;margin-bottom:22px;position:relative}
+#theme{position:absolute;right:0;top:0;width:38px;height:38px;padding:0;font-size:1.1rem;line-height:1;border-radius:50%}
+.logo{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:12px;background:var(--accent);color:var(--accent-t);font-weight:800;font-size:1.3rem;margin-bottom:10px}
+h1{font-size:1.6rem;line-height:1.2;margin:0 0 6px}
+.sub{color:var(--muted);margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.lab{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:.85rem;margin:0 0 8px}
+.lab button.link{font-weight:500}
+textarea{width:100%;font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical;min-height:120px}
+textarea:focus,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.group{margin-top:16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:.88rem;font-weight:500;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--soft);border-color:var(--accent);color:var(--accent2);font-weight:700}
+.opts{display:flex;align-items:center;gap:16px;margin-top:16px;flex-wrap:wrap;font-size:.9rem}
+.opts label{display:flex;align-items:center;gap:6px;cursor:pointer}
+button{font:inherit;cursor:pointer}
+.primary{width:100%;margin-top:18px;border:0;border-radius:999px;padding:12px 20px;font-weight:700;background:var(--accent);color:var(--accent-t)}
+.primary:hover:not(:disabled){filter:brightness(1.08)}
+.primary:disabled{opacity:.6;cursor:default}
+.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:7px 16px;font-weight:600;font-size:.9rem}
+.ghost:disabled{opacity:.5;cursor:default}
+.link{background:none;border:0;color:var(--accent);padding:0;font-size:.85rem}
+.hint{color:var(--muted);font-size:.85rem;margin-top:8px;text-align:center}
+.status{min-height:1.2em;font-size:.88rem;margin-top:10px;text-align:center}
+.status.err{color:var(--err)}
+.post-head{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.av{width:44px;height:44px;border-radius:50%;background:var(--accent);color:var(--accent-t);display:grid;place-items:center;font-weight:700;flex:none}
+.who input{border:0;background:transparent;color:var(--text);font:inherit;font-weight:700;padding:0;width:100%;max-width:240px}
+.who small{display:block;color:var(--muted);font-size:.78rem}
+#out{border:1px solid transparent;background:transparent;min-height:160px;padding:6px;margin:-6px;font-size:.98rem;line-height:1.55}
+#out:focus{background:var(--bg);border-color:var(--line)}
+.meter{position:relative;height:6px;background:var(--soft);border-radius:4px;margin-top:14px;overflow:hidden}
+.meter::before{content:"";position:absolute;left:40%;width:10%;top:0;bottom:0;background:var(--ok);opacity:.3}
+.meter b{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.metarow{display:flex;flex-wrap:wrap;gap:4px 12px;justify-content:space-between;color:var(--muted);font-size:.78rem;margin-top:6px}
+#mh{order:3;flex:1 0 100%}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.bar .sp{flex:1}
+.list{margin-top:12px}
+.item{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font-size:.92rem}
+.item:first-child{border-top:0}
+.item .tx{flex:1;min-width:0}
+.item .tx small{display:block;color:var(--muted);font-size:.8rem;margin-top:2px}
+.item .acts{display:flex;gap:12px;flex:none}
+.link.del{color:var(--err)}
+.sub2{color:var(--muted);font-size:.88rem;margin:0}
+.when{font-weight:700;color:var(--accent2);font-size:.8rem}
+#tech{width:100%;font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.pv{margin-top:12px;border:1px dashed var(--line);border-radius:10px;padding:10px 12px;font-size:.86rem}
+.pv small{display:block;color:var(--muted);font-size:.8rem;margin-bottom:4px}
+.pv em{color:var(--accent);font-style:normal;font-weight:600}
+.chk{margin-top:12px;font-size:.84rem}
+.chk .ok{color:var(--ok)}
+.chk ul{margin:6px 0 0;padding-left:18px}
+.chk li{margin:3px 0}
+.pv:empty,.chk:empty{display:none}
+details.add{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+details.add summary{cursor:pointer;font-weight:600;font-size:.85rem}
+details.add input{width:100%;margin-top:8px;font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+</style>
+</head>
+<body>
+<main>
+  <noscript><p class="sub">This tool needs JavaScript to work.</p></noscript>
+  <header>
+    <button class="ghost" id="theme" type="button" aria-label="Switch light or dark theme"></button>
+    <div class="logo">in</div>
+    <h1>LinkedIn Post Polisher</h1>
+    <p class="sub">Turn rough notes into a post people actually read.</p>
+  </header>
+
+  <section class="card">
+    <div class="lab"><label for="notes">Your rough notes</label><span style="display:flex;gap:14px"><button class="link" id="clr" type="button">Clear</button><button class="link" id="ex" type="button">Try an example</button></span></div>
+    <textarea id="notes" placeholder="What did you build, learn, or achieve? Messy bullet points are fine."></textarea>
+    <div class="hint" id="nh" style="text-align:left;margin:6px 0 0"></div>
+    <details class="add" id="readbox" hidden><summary>How I read your notes (click a label to change it)</summary><div id="readout" class="list"></div><div class="hint" style="text-align:left">Facts and lessons are used by Polish, hooks and the planner. Press Polish my post to apply your changes.</div></details>
+    <details class="add"><summary>Add specifics (makes it sound human)</summary>
+      <div class="hint" style="text-align:left;margin-top:8px">Only add things that are true. The grey examples are placeholders. Press Enter in a box to rebuild the post.</div>
+      <input id="d_wrong" type="text" placeholder="What exactly went wrong or surprised you? e.g. Dates like 03/04 were read as March, not April" maxlength="160">
+      <input id="d_num" type="text" placeholder="One real number or result, e.g. Cleaned 40,000 rows in 3 seconds" maxlength="160">
+      <input id="d_who" type="text" placeholder="Who is it for? e.g. analysts who live in spreadsheets" maxlength="120">
+    </details>
+
+    <div class="group">
+      <div class="lab">Post type</div>
+      <div class="chips" id="ptype" role="group" aria-label="Post type"></div>
+    </div>
+    <div class="group">
+      <div class="lab">Tone</div>
+      <div class="chips" id="tone" role="group" aria-label="Tone"></div>
+    </div>
+    <div class="group">
+      <div class="lab">Length</div>
+      <div class="chips" id="len" role="group" aria-label="Length"></div>
+    </div>
+    <div class="group">
+      <div class="lab">Audience</div>
+      <div class="chips" id="aud" role="group" aria-label="Audience"></div>
+    </div>
+    <div class="opts">
+      <label><input type="checkbox" id="tags" checked> Hashtags</label>
+      <label><input type="checkbox" id="emo"> Emojis</label>
+      <label><input type="checkbox" id="cta" checked> Ending question</label>
+      <label><input type="checkbox" id="bul"> Bullets</label>
+    </div>
+    <div class="group"><div class="lab"><label for="tech">Tech used (optional)</label></div><input id="tech" type="text" placeholder="e.g. Python, pandas (only what you really used)" maxlength="80" autocomplete="off"></div>
+    <button class="primary" id="go" type="button">Polish my post</button>
+    <div class="status" id="msg" role="status"></div>
+    <div class="hint">Tip: press Ctrl/Cmd + Enter to generate. Your notes never leave this device. The tool rearranges what you wrote, so add specifics (numbers, names, what went wrong) and edit in your own voice.</div>
+  </section>
+
+  <section class="card" id="result" hidden>
+    <div class="post-head">
+      <div class="av" id="av">Y</div>
+      <div class="who"><input id="name" value="Your Name" aria-label="Your name for the preview" maxlength="40"><small>Just now · Public</small></div>
+    </div>
+    <textarea id="out" aria-label="Generated post, editable"></textarea>
+    <div class="meter"><b id="mb"></b></div>
+    <div class="metarow"><span id="wc"></span><span id="mh"></span><span id="cc"></span></div>
+    <div id="seemore" class="pv"></div>
+    <div id="chk" class="chk"></div>
+    <div id="hookbox" class="list" hidden></div>
+    <div class="bar">
+      <button class="ghost" id="copy" type="button">Copy post</button>
+      <button class="ghost" id="dl" type="button">Download .txt</button>
+      <button class="ghost" id="again" type="button">New version</button>
+      <button class="ghost" id="hooks" type="button">3 hooks</button>
+      <button class="ghost" id="save" type="button">Save draft</button>
+      <button class="ghost" id="posted" type="button">Mark as posted</button>
+      <span class="sp"></span>
+      <button class="ghost" id="back" type="button" title="Previous version" disabled>&larr;</button>
+      <button class="ghost" id="fwd" type="button" title="Next version" disabled>&rarr;</button>
+    </div>
+    <details style="margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px"><summary style="cursor:pointer;font-weight:600;font-size:.85rem">Advanced</summary><label class="opts" style="margin-top:10px;font-size:.82rem"><input type="checkbox" id="guard"> Spacing guard for pasting (adds invisible characters on blank lines; try it only if LinkedIn drops your blank lines; screen readers may announce them)</label></details>
+    <div class="status" id="hs" role="status"></div>
+  </section>
+
+  <section class="card">
+    <div class="lab">Content planner</div>
+    <p class="sub2">Get 5 follow-up post ideas with when to post them, based on your notes above. Times are suggestions, not guarantees.</p>
+    <div style="margin-top:12px"><button class="ghost" id="plan" type="button">Suggest ideas &amp; schedule</button> <button class="ghost" id="ics" type="button" hidden>Add to calendar (.ics)</button></div>
+    <div class="status" id="ps" role="status"></div>
+    <div id="planout" class="list"></div>
+  </section>
+
+  <section class="card" id="draftcard">
+    <div class="lab"><span>Saved drafts <span id="dc"></span></span><span style="display:flex;gap:14px"><button class="link" id="imp" type="button">Import backup</button><button class="link" id="dlall" type="button">Download all (.txt)</button><button class="link del" id="delall" type="button">Delete all</button></span></div>
+    <div id="drafts"></div>
+    <div class="status" id="is" role="status"></div>
+    <input type="file" id="impf" accept=".txt,text/plain" hidden>
+    <div class="hint">Saved in this browser on this device.</div>
+  </section>
+
+  <section class="card" id="postcard" hidden>
+    <div class="lab"><span>Posted history <span id="pc"></span></span></div>
+    <div id="posts"></div>
+    <div class="hint">Posts you marked as posted. The planner flags ideas you've already covered.</div>
+  </section>
+</main>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var TONES=["Professional","Storytelling","Casual","Bold & punchy","Humble"],LENS=["Short","Medium","Long"],TYPES=["Project","Achievement","Job update","Lesson","Hiring"];
+  var sel={tone:"Professional",len:1,aud:"General",type:"Project"},hist=[],pos=-1,ver=0,skipCta=false,OVR={},KN={f:"Fact",l:"Lesson",a:"Ask"};
+  var EX="built a small tool that cleans messy CSV files. took 2 weekends. biggest surprise: date formats broke everything. learned to test with ugly real data first. want feedback from people who work with spreadsheets.";
+  var EMO={"Professional":"\ud83d\ude80","Storytelling":"\ud83d\udcd6","Casual":"\ud83d\ude04","Bold & punchy":"\ud83d\udd25","Humble":"\ud83c\udf31"};
+  var Q={"Professional":["If you've dealt with this, how did you handle it?","What has worked for you?"],"Storytelling":["Has anything like this happened to you?","What's your version of this story?"],"Casual":["Anyone else been through this?","What's your go-to fix?"],"Bold & punchy":["Where do you disagree?","What would you add?"],"Humble":["What am I missing?","What would you do differently?"]};
+  var OPEN={"Professional":["","A quick update I wanted to share.","Sharing something I learned recently."],"Storytelling":["","A short story from the last few weeks.","Let me tell you how this one went."],"Casual":["","Quick one from this week.","Small update from my side."],"Bold & punchy":["","Short version:","Plain and simple:"],"Humble":["","Still learning, but I wanted to share this.","Sharing this in case it helps someone."]};
+  var OPENT={"Achievement":["","A small win I wanted to share.","Some good news from my side."],"Job update":["","A personal update.","Some news about my next step."],"Lesson":["","One lesson from this week.","Something I keep coming back to."],"Hiring":["","An open role I wanted to share.","Spreading the word about a role."]};
+  var QT={"Achievement":["What is a recent win you are proud of?","Who helped you get there?"],"Job update":["Any advice for my first weeks?","What do you wish you knew when you started something new?"],"Lesson":["What lesson took you the longest to learn?","Has it been different for you?"],"Hiring":["Know someone who fits? Tag them or send them my way.","What would make you apply for a role like this?"]};
+  var EXS={"Project":EX,"Achievement":"won the regional data challenge. 120 teams entered. my team of three built a forecasting model in 48 hours. we couldn't have done it without our mentor.","Job update":"joined a logistics startup as a data analyst this month. spent 3 years in finance before this. learned that switching fields means starting small. want advice from people who changed careers.","Lesson":"learned to write the answer first and the explanation after. my reports got read more often. biggest mistake was burying the result on page 3.","Hiring":"we are hiring a junior data analyst. the role is remote and focuses on dashboards. need someone who is curious and writes clearly. looking for people who like messy data."};
+  var QA={"Developers":"Devs, how do you handle this?","Data folks":"Data folks, how do you handle this?"};
+  var STOP="everything weekends feedback learned surprise biggest something anything together another because about after also been first from have into just like more much only still some than that their them then there these they this very want were what when which while with would your".split(" ");
+  function slotDate(off,time){var d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+((8-d.getDay())%7||7)+off);return d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})+" \u00b7 "+time}
+  var SLOTS=[slotDate(1,"8:30 AM"),slotDate(3,"8:00 AM"),slotDate(8,"8:30 AM"),slotDate(9,"9:00 AM"),slotDate(10,"8:00 AM")];
+
+  function mk(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+  function chips(el,items,key){
+    items.forEach(function(it,i){
+      var b=mk("button","chip",it),val=key==="len"?i:it;b.type="button";
+      b.setAttribute("aria-pressed",String(sel[key]===val));
+      b.onclick=function(){sel[key]=val;[].forEach.call(el.children,function(c){c.setAttribute("aria-pressed","false")});b.setAttribute("aria-pressed","true")};
+      el.appendChild(b);
+    });
+  }
+  chips($("ptype"),TYPES,"type");chips($("tone"),TONES,"tone");chips($("len"),LENS,"len");chips($("aud"),["General","Developers","Data folks"],"aud");
+  try{var n=localStorage.getItem("lpp-name");if(n)$("name").value=n}catch(e){}
+  function av(){var v=$("name").value.trim();$("av").textContent=(v[0]||"Y").toUpperCase()}
+  $("name").oninput=function(){av();try{localStorage.setItem("lpp-name",$("name").value)}catch(e){}};av();
+
+  $("name").onfocus=function(){if(this.value==="Your Name")this.select()};
+  function say(t,err){$("msg").textContent=t;$("msg").className="status"+(err?" err":"")}
+  function setS(el,t,err){el.textContent=t;el.className="status"+(err?" err":"")}
+  function stats(){
+    var t=$("out").value,w=t.trim()?t.trim().split(/\s+/).length:0;
+    var sec=Math.max(1,Math.round(w/200*60));$("wc").textContent=w+" words \u00b7 \u23f1\ufe0f ~"+(sec<60?sec+"s":(sec/60).toFixed(1).replace(".0","")+" min")+" read";$("cc").textContent=clen()+" / 3000";review(t);
+    var n=clen(),ok=n>=1200&&n<=1500;$("mb").style.width=Math.min(100,n/30)+"%";$("mb").style.background=n>3000?"var(--err)":ok?"var(--ok)":"var(--accent)";$("mh").textContent=n>3000?"Over the limit":ok?"In the common range \u2713":"Shorter is fine. Many posts are 1,200\u20131,500";
+  }
+  function clen(){return Array.from(outText()).length}
+  function cl(x){return x.replace(/^["'\u201c\u2018]+/,"")}
+  var SLOTS_T=[[1,8,30],[3,8,0],[8,8,30],[9,9,0],[10,8,0]];
+  function pad(n){return ("0"+n).slice(-2)}
+  function icsStamp(d){return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+"T"+pad(d.getHours())+pad(d.getMinutes())+"00"}
+  function slotAt(i){var T=SLOTS_T[i],d=new Date();d.setHours(T[1],T[2],0,0);d.setDate(d.getDate()+((8-d.getDay())%7||7)+T[0]);return d}
+  function makeIcs(ideas){
+    var esc=function(x){return String(x).replace(/\\/g,"\\\\").replace(/[;,]/g,"\\$&").replace(/\n/g,"\\n")};
+    var stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
+    var L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//LinkedIn Post Polisher//EN","CALSCALE:GREGORIAN"];
+    ideas.forEach(function(it,i){var st=slotAt(i),en=new Date(st.getTime()+30*60000);
+      L.push("BEGIN:VEVENT","UID:lpp-"+Date.now()+"-"+i+"@local","DTSTAMP:"+stamp,"DTSTART:"+icsStamp(st),"DTEND:"+icsStamp(en),"SUMMARY:"+esc("Post: "+it[0]),"DESCRIPTION:"+esc(it[1]),"END:VEVENT")});
+    L.push("END:VCALENDAR");return L.join("\r\n");
+  }
+  function titleOf(t){var all=[];[OPEN,OPENT].forEach(function(o){Object.keys(o).forEach(function(k){all=all.concat(o[k])})});var ls=t.split("\n").map(function(x){return x.trim()}).filter(Boolean);for(var i=0;i<ls.length;i++){if(all.indexOf(ls[i])<0&&ls[i].charAt(0)!=="#")return cl(ls[i])}return cl(ls[0]||"")}
+  function gate(){var ok=$("notes").value.trim().length>=15;$("go").disabled=!ok;$("nh").textContent=ok?"":"Write at least one sentence (15+ characters) to continue."}
+  function nav(){$("back").disabled=pos<=0;$("fwd").disabled=pos>=hist.length-1}
+  $("out").oninput=function(){if(pos>=0)hist[pos]=$("out").value;stats()};$("guard").onchange=stats;
+
+  /* text helpers */
+  function cap(x){return x.charAt(0).toUpperCase()+x.slice(1)}
+  function lc(x){return /^[A-Z][a-z]/.test(x)?x.charAt(0).toLowerCase()+x.slice(1):x}
+  function sent(x){return /[.!?]$/.test(x)?x:x+"."}
+  function guess(x){return /feedback|advice|thoughts|input|looking for|want|need help|would love/i.test(x)?"a":/learn|lesson|realiz|mistake|surpris|biggest|taught|never again/i.test(x)?"l":"f"}
+  function renderRead(){
+    var box=$("readout"),all=$("notes").value.trim().length<15?[]:parse().all;box.innerHTML="";$("readbox").hidden=!all.length;
+    all.forEach(function(it){
+      var row=mk("div","item"),tx=mk("div","tx",it.t),ac=mk("div","acts"),b=mk("button","chip",KN[it.k]),nx={f:"l",l:"a",a:"f"}[it.k];
+      b.type="button";b.title="Click to change to "+KN[nx];
+      b.onclick=function(){if(nx===guess(it.t))delete OVR[it.t];else OVR[it.t]=nx;renderRead()};
+      ac.appendChild(b);row.appendChild(tx);row.appendChild(ac);box.appendChild(row);
+    });
+  }
+  function parse(){
+    var raw=$("notes").value.replace(/\r/g,"");
+    var parts=raw.replace(/\b(e\.g|i\.e|vs)\./gi,function(m){return m.replace(/\./g,"\u0001")}).replace(/([.!?])[ \t]+/g,"$1\n").split(/\n+|;\s*/).map(function(x){x=x.replace(/\u0001/g,".");
+      x=x.replace(/^\s*([-*\u2022]|\d+[.)])\s+/,"").replace(/[.!?\s]+$/,"").trim();
+      if(/^took\b/i.test(x))x="It took me"+x.slice(4);else if(/^(promoted|selected|awarded|invited|nominated)\b/i.test(x))x="I was "+lc(x);else if(/^(joined|accepted|won|received|completed|passed|earned|moved|graduated|published|presented|built|made|created|wrote|launched|shipped|started|finished|spent|learned|fixed|tested|designed|developed|got|tried|ran|found)\b/i.test(x))x="I "+lc(x);
+      return cap(x.replace(/^e\.g\.\s*/i,"For example, ").replace(/^i\.e\.\s*/i,"That is, "))}).filter(function(x){return x.length>2});
+    var f=[],l=[],a=[],all=[];
+    parts.forEach(function(x){
+      var k=OVR[x]||guess(x);all.push({t:x,k:k});(k==="a"?a:k==="l"?l:f).push(x)});
+    if(!f.length){var m=l.shift()||a.shift();if(m)f.push(m)}
+    return{f:f,l:l,a:a,all:all};
+  }
+  function techList(){return $("tech").value.split(/,|&|\band\b/i).map(function(x){return x.trim()}).filter(Boolean).slice(0,4)}
+  function joinList(a){return a.length<2?a.join(""):a.slice(0,-1).join(", ")+" and "+a[a.length-1]}
+  function tags(){
+    var raw=$("notes").value,out=techList().map(function(t){return"#"+cap(t.replace(/[^A-Za-z0-9]/g,""))}).filter(function(t){return t.length>1});
+    (raw.match(/\b[A-Z]{2,6}\b/g)||[]).forEach(function(a){if(out.indexOf("#"+a)<0)out.push("#"+a)});
+    var c={};(raw.toLowerCase().match(/[a-z]{8,}/g)||[]).forEach(function(w){if(STOP.indexOf(w)<0&&!/(ing|ed|ly)$/.test(w))c[w]=(c[w]||0)+1});
+    Object.keys(c).sort(function(x,y){return c[y]-c[x]||y.length-x.length}).forEach(function(w){out.push("#"+cap(w))});
+    var ap={"Developers":"#Developers","Data folks":"#DataCommunity"}[sel.aud];var TT={"Achievement":"#Milestone","Job update":"#CareerUpdate","Lesson":"#Learning","Hiring":"#Hiring"}[sel.type];out=out.slice(0,(ap?2:3)-(TT?1:0));if(ap)out.push(ap);if(TT)out.push(TT);if(!TT&&/\b(built|build|made|created|launched|shipped|project|tool|app)\b/i.test(raw))out.push("#BuildInPublic");return out.join(" ");
+  }
+  function build(){skipCta=false;
+    var p=parse(),t=sel.tone,L=sel.len,emo=$("emo").checked,bul=$("bul").checked,out=[];
+    var nf=[1,3,9][L],nl=[1,2,9][L];
+    var facts=p.f.slice(0,nf),les=p.l.slice(0,nl),tl=techList(),lead="";
+    var dw=$("d_wrong").value.trim(),dn=$("d_num").value.trim(),dh=$("d_who").value.trim();if(dw)facts.push(cap(dw));if(dn)facts.push(cap(dn));if(dh)facts.push("It's for "+lc(dh));
+    if(tl.length)facts.push("Built with "+joinList(tl));
+    if(t==="Bold & punchy"&&les.length&&!bul)lead=cap(les.shift().replace(/^[A-Za-z ]{3,25}:\s*/,""));
+    if(t==="Casual"&&facts.length)facts[0]="So "+lc(facts[0]);
+    if(lead)out.push(sent(lead)+(emo?" "+EMO[t]:""));else{var op=(sel.type!=="Project"?OPENT[sel.type]:OPEN[t])[ver%3];if(op)out.push(op)}
+    if(facts.length){
+      var fs=facts.map(sent);if(emo&&!lead)fs[0]+=" "+EMO[t];
+      out.push((L===2||t==="Storytelling"||ver%2===1)?fs.join("\n\n"):fs.join(" "));
+    }
+    if(les.length)out.push(bul?"What I learned:\n"+les.map(function(x){return"\u2022 "+sent(x)}).join("\n"):les.map(sent).join(" "));
+    var ask=p.a[0];
+    if(ask){
+      var a=ask.replace(/^(I\s+)?(want|would like|need|am looking for|looking for)\s+/i,"");
+      var AL={"Professional":"I'm looking for ","Storytelling":"I'd love to get ","Casual":"Would love ","Bold & punchy":"I want ","Humble":"I'd really appreciate "};
+      out.push(a===ask?sent(ask):/^to\s/i.test(a)?"I'd like "+lc(a)+".":AL[t]+lc(a)+".");
+    }
+    if($("cta").checked){if(!ask||sel.aud!=="General")out.push((emo?"\ud83d\udcac ":"")+(QA[sel.aud]||(QT[sel.type]||Q[t])[ver%2]));else skipCta=true}
+    if($("tags").checked){var tg=tags();if(tg)out.push(tg)}
+    return out.join("\n\n");
+  }
+  function run(inc){
+    if($("notes").value.trim().length<15){say("Add a bit more detail first (a sentence or two).",true);return}
+    if(inc)ver++;
+    say("");hist.push(build());if(skipCta)say("Your notes already include an ask, so no extra closing question was added.");pos=hist.length-1;
+    $("result").hidden=false;$("out").value=hist[pos];stats();nav();renderHooks([]);
+    $("result").scrollIntoView({behavior:"smooth",block:"nearest"});
+  }
+  $("go").onclick=function(){run(false)};$("again").onclick=function(){run(true)};
+  $("notes").onkeydown=function(e){if((e.ctrlKey||e.metaKey)&&e.key==="Enter")run(false)};
+  ["d_wrong","d_num","d_who"].forEach(function(id){$(id).onkeydown=function(e){if(e.key==="Enter")run(false)}});
+  $("ex").onclick=function(){$("notes").value=EXS[sel.type]||EX;$("notes").dispatchEvent(new Event("input"));$("notes").focus()};
+  try{var sn=localStorage.getItem("lpp-notes");if(sn)$("notes").value=sn}catch(e){}
+  $("notes").addEventListener("input",function(){gate();renderRead();try{localStorage.setItem("lpp-notes",$("notes").value)}catch(e){}});gate();renderRead();
+  $("clr").onclick=function(){$("notes").value="";["d_wrong","d_num","d_who","tech"].forEach(function(id){$(id).value=""});try{localStorage.removeItem("lpp-notes")}catch(e){}OVR={};gate();renderRead();$("notes").focus()};
+  function show(i){pos=i;$("out").value=hist[i];stats();nav();renderHooks([])}
+  $("back").onclick=function(){if(pos>0)show(pos-1)};
+  $("fwd").onclick=function(){if(pos<hist.length-1)show(pos+1)};
+
+  /* hooks */
+  function dedupe(hook,rest){
+    var h=hook.toLowerCase();
+    var paras=rest.replace(/^\n+/,"").split("\n\n").map(function(para){
+      var lines=para.split("\n").map(function(line){
+        if(/^#/.test(line))return line;
+        var bl=/^\u2022\s*/.test(line);line=line.replace(/^\u2022\s*/,"");
+        var kept=(line.match(/[^.!?]+[.!?]*\s*/g)||[line]).filter(function(sn){
+          var core=sn.trim().replace(/[.!?]+$/,"").replace(/^[A-Za-z ]{3,25}:\s*/,"").toLowerCase();
+          return !(core.length>=12&&h.indexOf(core)>=0);
+        }).join("").trim();
+        return kept&&bl?"\u2022 "+kept:kept;
+      }).filter(Boolean);
+      if(lines.length&&/:$/.test(lines[lines.length-1]))lines.pop();
+      return lines.join("\n");
+    }).filter(Boolean);
+    return paras.join("\n\n");
+  }
+  function renderHooks(lines){
+    var box=$("hookbox");box.innerHTML="";box.hidden=!lines.length;
+    lines.forEach(function(h){
+      var d=mk("div","item"),a=mk("div","acts"),b=mk("button","link","Use");b.type="button";
+      b.onclick=function(){var cur=$("out").value,m=cur.match(/^[^\n]*?[.!?](?=\s|$)/),nl=cur.indexOf("\n"),i=m?m[0].length:(nl<0?cur.length:nl),rest=cur.slice(i).replace(/^[ \t]+/,"");$("out").value=rest.trim()?h+"\n\n"+dedupe(h,rest):h;if(pos>=0)hist[pos]=$("out").value;stats()};
+      a.appendChild(b);d.appendChild(mk("div","tx",h));d.appendChild(a);box.appendChild(d);
+    });
+  }
+  $("hooks").onclick=function(){
+    var p=parse(),first=p.f[0],base=p.l[0]||first;if(base)base=cap(base.replace(/^[A-Za-z ]{3,25}:\s*/,""));
+    if(!base){setS($("hs"),"Add your notes at the top first.",true);return}
+    setS($("hs"),"");
+    if(p.l[0])renderHooks([base+".",(first&&first!==base?first+". "+base+".":"What I took from this: "+lc(base)+"."),"A lesson from this project: "+lc(base)+"."]);
+    else renderHooks([base+".","A small project I just finished: "+lc(base)+".","Short version: "+lc(base)+"."]);
+  };
+
+  /* saved drafts */
+  var KEY="lpp-drafts";
+  function load(){try{var a=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(a)?a:[]}catch(e){return[]}}
+  function store(a){try{localStorage.setItem(KEY,JSON.stringify(a));return true}catch(e){return false}}
+  function renderDrafts(){
+    var a=load(),box=$("drafts");box.innerHTML="";
+    $("dlall").hidden=$("delall").hidden=!a.length;$("dc").textContent=a.length?"("+a.length+")":"";
+    if(!a.length)box.appendChild(mk("div","hint","No saved drafts yet."));
+    a.forEach(function(d,i){
+      var row=mk("div","item"),tx=mk("div","tx",titleOf(d.t).slice(0,100)),acts=mk("div","acts");
+      tx.appendChild(mk("small","",new Date(d.d).toLocaleDateString()+" \u00b7 "+d.t.trim().split(/\s+/).length+" words"));
+      var o=mk("button","link","Open"),x=mk("button","link del","Delete");o.type=x.type="button";
+      o.onclick=function(){$("result").hidden=false;hist.push(d.t);pos=hist.length-1;$("out").value=d.t;stats();nav();renderHooks([]);$("result").scrollIntoView({behavior:"smooth",block:"nearest"})};
+      x.onclick=function(){var b=load();b.splice(i,1);store(b);renderDrafts()};
+      acts.appendChild(o);acts.appendChild(x);row.appendChild(tx);row.appendChild(acts);box.appendChild(row);
+    });
+  }
+  $("save").onclick=function(){
+    var t=$("out").value.trim();if(!t)return;
+    var a=load().filter(function(d){return d.t!==t});a.unshift({t:t,d:Date.now()});a=a.slice(0,30);
+    if(store(a)){renderDrafts();setS($("hs"),"");$("save").textContent="Saved!";setTimeout(function(){$("save").textContent="Save draft"},1500)}
+    else setS($("hs"),"Couldn't save here (browser storage is blocked). Use Copy instead.",true);
+  };
+  renderDrafts();
+
+  /* planner */
+  function askLine(x){var a=x.replace(/^(I\s+)?(want|would like|need|am looking for|looking for)\s+/i,"");return a!==x?"Ask for "+lc(a):"Ask: "+x}
+  $("plan").onclick=function(){
+    if($("notes").value.trim().length<15){setS($("ps"),"Add your notes in the box at the top first.",true);return}
+    setS($("ps"),"");
+    var p=parse(),F=p.f[0]||"My project",ideas=[
+      ["The story behind it","Tell the origin story: "+F],
+      [p.l[0]?cap(p.l[0].replace(/^[A-Za-z ]{3,25}:\s*/,"")):"One lesson I learned",p.l[0]?"Explain the lesson and what you changed":"Share one concrete takeaway"],
+      ["Behind the scenes",p.f.length>1?"Share the details: "+lc(p.f.slice(1).join("; ")):"Walk through your process step by step"],
+      ["A question for my network",p.a[0]?askLine(p.a[0]):"Ask people about their own experience"],
+      ["Results and next steps","Share an update and what you plan to improve"]];
+    if(sel.type!=="Project")ideas[4]=["What comes next","Share what you plan to do next"];lastIdeas=ideas;$("ics").hidden=false;var fresh=[];var box=$("planout");box.innerHTML="";
+    ideas.forEach(function(it,i){
+      var row=mk("div","item"),tx=mk("div","tx"),acts=mk("div","acts");
+      tx.appendChild(mk("div","when",SLOTS[i]));tx.appendChild(mk("div","",it[0]));tx.appendChild(mk("small","",it[1]));
+      var key=[F,p.l[0],p.f[1],p.a[0]][i];if(key&&covered(key)){tx.appendChild(mk("small","","Already covered in a post you marked as posted."));row.style.opacity=".65"}else fresh.push(it[0]);
+      var b=mk("button","link","Draft it");b.type="button";
+      b.onclick=function(){$("notes").value=it[0]+". "+it[1]+".";gate();OVR={};renderRead();window.scrollTo({top:0,behavior:"smooth"});$("notes").focus()};
+      acts.appendChild(b);row.appendChild(tx);row.appendChild(acts);box.appendChild(row);
+    });
+    if(fresh.length<5)setS($("ps"),(5-fresh.length)+" of 5 ideas repeat what you already posted"+(fresh.length?". Fresh angles: "+fresh.join(", ")+".":". Add new notes for a different topic."));
+  };
+
+  function openDetail(id){var el=$(id);el.closest("details").open=true;el.focus();el.scrollIntoView({behavior:"smooth",block:"center"})}
+  /* human check + see-more preview */
+  var STOCK=[/game[- ]?changer/i,/here'?s the thing/i,/nobody (tells|warns) you/i,/thrilled to|excited to (announce|share)|humbled (and|to)/i,/\b(delve|leverage|unlock|elevate|tapestry|synergy|cutting-edge|passionate about)\b|in today'?s/i,/let that sink in/i,/(isn'?t|wasn'?t|not just) [^.!?]{3,40}[,;] (it'?s|but)/i,/\b(hot take|unpopular opinion)\b/i,/\bhere'?s (what|how|why)\b/i,/\b(journey|landscape)\b/i];
+  var chkOpen=null;
+  function review(t){
+    var box=$("chk"),pv=$("seemore");box.innerHTML="";pv.innerHTML="";
+    if(!t.trim())return;
+    var items=[],words=t.trim().split(/\s+/).length;
+    STOCK.forEach(function(r){var m=t.match(r);if(m)items.push("\u201c"+m[0]+"\u201d sounds stock. Say it your own way.")});
+    if((t.match(/\u2014/g)||[]).length>1)items.push("Several em dashes. They're a common AI tell; use periods or commas.");
+    if(t.replace(/([.!?])\s+/g,"$1\n").split("\n").some(function(x){return x.split(/\s+/).length>28}))items.push("One sentence runs over 28 words. Split it.");
+    var tg=(t.match(/#\w+/g)||[]).length;if(tg>4)items.push(tg+" hashtags is a lot. 2 or 3 reads more natural.");
+    if((t.match(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu)||[]).length>2)items.push("Lots of emojis. One or two is plenty.");
+    if((t.match(/!/g)||[]).length>2)items.push("Several exclamation marks. A couple at most.");
+    if((t.match(/^\u2022/gm)||[]).length>4)items.push("A long bullet list can read like a template.");
+    var paras=t.split(/\n\s*\n/).filter(function(x){return !/^#/.test(x.trim())});
+    if(/^(what are your thoughts|thoughts\?|agree\?|what do you think|let me know in the comments)/i.test((paras[paras.length-1]||"").trim()))items.push("The closing question is generic. Ask something only your post can ask.");
+    if(((t.split("\n")[0].match(/^.*?[.!?](\s|$)/)||[t.split("\n")[0]])[0]).length>140)items.push("Your opening sentence is over about 140 characters, so phones may cut it off.");
+    else if(/\d/.test(t)&&!/\d/.test(t.slice(0,140)))items.push("Your number is buried. If it's the result, put it in the first line.");
+    if(words<40)items.push(["Short on detail. Add what went wrong, a number, or who it's for.",["d_wrong","d_num","d_who"].filter(function(id){return !$(id).value.trim()})[0]||"d_wrong"]);
+    else if(!/\d/.test(t))items.push(["No numbers yet. If you have a real figure, add it.","d_num"]);
+    var sp=similarPost(t);if(sp)items.push("This is close to a post you marked as posted on "+new Date(sp.d).toLocaleDateString()+". Try a new angle, or add what is new since then.");if(!items.length)box.appendChild(mk("span","ok","No obvious AI tells found. Still read it aloud before posting."));
+    else{
+      var dt=mk("details"),sm=mk("summary","","Sounds-human check: "+items.length+(items.length>1?" things":" thing")+" to look at");sm.style.cssText="cursor:pointer;font-weight:700";dt.appendChild(sm);dt.open=chkOpen===null?items.length<=2:chkOpen;dt.ontoggle=function(){chkOpen=dt.open};box.appendChild(dt);
+      var ul=mk("ul");items.slice(0,9).forEach(function(x){
+        var str=typeof x==="string",li=mk("li","",str?x:x[0]);
+        if(!str){var b=mk("button","link","Add it");b.type="button";b.style.marginLeft="8px";b.onclick=function(){openDetail(x[1])};li.appendChild(b)}
+        ul.appendChild(li);
+      });dt.appendChild(ul);
+    }
+    var cut=t.length>210?t.slice(0,210).replace(/\s+\S*$/,""):t;
+    pv.appendChild(mk("small","","Before \u201csee more\u201d (approximate): bright text is about what a phone shows, faded text is what a desktop may add"));
+    var m=cut.length>140?cut.slice(0,140).replace(/\s+\S*$/,""):cut;
+    var body=mk("div","");body.style.whiteSpace="pre-wrap";
+    body.appendChild(document.createTextNode(m));
+    var rest=mk("span","",cut.slice(m.length));rest.style.opacity=".45";body.appendChild(rest);
+    if(t.length>210)body.appendChild(mk("em","","\u2026 see more"));
+    pv.appendChild(body);
+  }
+
+  function wset(x){var o={},n=0;(x.toLowerCase().match(/[a-z]{5,}/g)||[]).forEach(function(w){if(STOP.indexOf(w)>=0)return;w=w.slice(0,5);if(!o[w]){o[w]=1;n++}});return{o:o,n:n}}
+  function similarPost(t){var a=wset(t);if(a.n<4)return null;var best=null;loadP().forEach(function(d){if(d.t.trim()===t.trim())return;var b=wset(d.t),c=0;Object.keys(a.o).forEach(function(w){if(b.o[w])c++});if(c>=3&&c/Math.min(a.n,b.n)>=0.35&&(!best||d.d>best.d))best=d});return best}
+  /* posted history */
+  var PK="lpp-posted";
+  function loadP(){try{var a=JSON.parse(localStorage.getItem(PK)||"[]");return Array.isArray(a)?a:[]}catch(e){return[]}}
+  function storeP(a){try{localStorage.setItem(PK,JSON.stringify(a));return true}catch(e){return false}}
+  function covered(title){
+    var w=title.toLowerCase().match(/[a-z]{4,}/g)||[];if(w.length<2)return false;
+    return loadP().some(function(d){var l=d.t.toLowerCase();return w.filter(function(x){return l.indexOf(x)>=0}).length/w.length>=0.75});
+  }
+  function renderPosted(){
+    var a=loadP(),box=$("posts");box.innerHTML="";
+    $("postcard").hidden=!a.length;$("pc").textContent=a.length?"("+a.length+")":"";
+    a.forEach(function(d,i){
+      var row=mk("div","item"),tx=mk("div","tx",titleOf(d.t).slice(0,100)),acts=mk("div","acts");
+      tx.appendChild(mk("small","","Posted "+new Date(d.d).toLocaleDateString()));
+      var o=mk("button","link","Open"),x=mk("button","link del","Remove");o.type=x.type="button";
+      o.onclick=function(){$("result").hidden=false;hist.push(d.t);pos=hist.length-1;$("out").value=d.t;stats();nav();renderHooks([]);$("result").scrollIntoView({behavior:"smooth",block:"nearest"})};
+      x.onclick=function(){var b=loadP();b.splice(i,1);storeP(b);renderPosted()};
+      acts.appendChild(o);acts.appendChild(x);row.appendChild(tx);row.appendChild(acts);box.appendChild(row);
+    });
+  }
+  $("posted").onclick=function(){
+    var t=$("out").value.trim();if(!t)return;
+    var sim=similarPost(t),a=loadP().filter(function(d){return d.t!==t});a.unshift({t:t,d:Date.now()});a=a.slice(0,100);
+    if(storeP(a)){renderPosted();setS($("hs"),sim?"Marked. Note: it is close to your post from "+new Date(sim.d).toLocaleDateString()+".":"");$("posted").textContent="Marked \u2713";setTimeout(function(){$("posted").textContent="Mark as posted"},1500)}
+    else setS($("hs"),"Couldn't save here (browser storage is blocked).",true);
+  };
+  renderPosted();
+
+  /* clean output text */
+  function outText(){
+    var t=$("out").value.replace(/\r\n?/g,"\n").replace(/[ \t]+\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
+    if($("guard").checked)t=t.replace(/\n\n/g,"\n\u2800\n");
+    return t;
+  }
+  /* theme */
+  function effTheme(){var a=document.documentElement.getAttribute("data-theme");if(a)return a;return(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light"}
+  function paintTheme(){var d=effTheme()==="dark";$("theme").textContent=d?"\u2600\ufe0f":"\ud83c\udf19";$("theme").title=d?"Switch to light":"Switch to dark"}
+  try{var th=localStorage.getItem("lpp-theme");if(th)document.documentElement.setAttribute("data-theme",th)}catch(e){}
+  $("theme").onclick=function(){var n=effTheme()==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);try{localStorage.setItem("lpp-theme",n)}catch(e){}paintTheme()};
+  paintTheme();
+
+  /* downloads */
+  function saveTxt(name,text,type){
+    var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:type||"text/plain;charset=utf-8"}));a.download=name;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
+  }
+  function today(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
+  $("dl").onclick=function(){var t=outText();if(t)saveTxt("linkedin-post-"+today()+".txt",t)};
+  $("dlall").onclick=function(){var a=load();if(a.length)saveTxt("linkedin-drafts-"+today()+".txt",a.map(function(d){return d.t}).join("\n\n----------\n\n"))};
+
+  var lastIdeas=[];
+  $("ics").onclick=function(){if(lastIdeas.length)saveTxt("linkedin-post-plan.ics",makeIcs(lastIdeas),"text/calendar;charset=utf-8")};
+  /* delete all drafts (two clicks to confirm) */
+  var armed=false,armT;
+  function disarm(){armed=false;clearTimeout(armT);$("delall").textContent="Delete all"}
+  $("delall").onclick=function(){
+    if(!armed){armed=true;$("delall").textContent="Click again to delete all";armT=setTimeout(disarm,3000);return}
+    disarm();store([]);renderDrafts();
+  };
+
+  /* import a backup made with "Download all" */
+  $("imp").onclick=function(){$("impf").click()};
+  $("impf").onchange=function(){
+    var f=this.files&&this.files[0];if(!f)return;
+    var r=new FileReader();
+    r.onload=function(){
+      var parts=String(r.result).replace(/\r\n?/g,"\n").split(/\n\s*-{10}\s*\n/).map(function(x){return x.trim()}).filter(Boolean);
+      if(!parts.length){setS($("is"),"No drafts found in that file.",true);return}
+      var a=load(),have={},added=0,skipped=0;a.forEach(function(d){have[d.t]=1});
+      parts.forEach(function(t){if(!have[t]){if(a.length<30){a.push({t:t,d:Date.now()});have[t]=1;added++}else skipped++}});
+      if(store(a)){renderDrafts();setS($("is"),added?"Imported "+added+" draft"+(added>1?"s":"")+".":"Nothing new to import.")+(skipped?" Skipped "+skipped+" (limit is 30 drafts).":"")}
+      else setS($("is"),"Couldn't save here (browser storage is blocked).",true);
+    };
+    r.onerror=function(){setS($("is"),"Couldn't read that file.",true)};
+    r.readAsText(f);this.value="";
+  };
+  try{if(window.top!==window.self){$("dl").style.display="none";$("dlall").style.display="none";$("ics").style.display="none"}}catch(e){$("dl").style.display="none";$("dlall").style.display="none";$("ics").style.display="none"}
+
+  /* copy */
+  function fb(t,done){
+    var a=document.createElement("textarea");a.value=t;a.style.position="fixed";a.style.opacity="0";document.body.appendChild(a);a.select();
+    try{document.execCommand("copy");done()}catch(e){setS($("hs"),"Couldn't copy. Select the text and copy manually.",true)}
+    document.body.removeChild(a);
+  }
+  $("copy").onclick=function(){
+    var t=outText(),done=function(){$("copy").textContent="Copied!";setTimeout(function(){$("copy").textContent="Copy post"},1500)};
+    try{navigator.clipboard.writeText(t).then(done,function(){fb(t,done)})}catch(e){fb(t,done)}
+  };
+})();
+</script>
+</body>
+</html>
