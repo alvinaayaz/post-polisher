@@ -257,6 +257,10 @@ details.add input{width:100%;margin-top:8px;font:inherit;color:var(--text);backg
   function lc(x){return /^[A-Z][a-z]/.test(x)?x.charAt(0).toLowerCase()+x.slice(1):x}
   function sent(x){return /[.!?]$/.test(x)?x:x+"."}
   var CLAUSE=/^(it|this|that|these|those|them|everyone|everybody|you|us|me)\s+(to|will|would|could|can|should|be)\b/i;
+  var THIRD=/^(turns|runs|includes|works|helps|lets|keeps|makes|saves|checks|gives|shows|supports|uses|has|does|finds|cleans|converts|builds|creates|takes|needs|stores|generates|exports|imports|suggests|flags|reads|writes|fixes|removes|adds)\b/i;
+  var PN={linkedin:"LinkedIn",javascript:"JavaScript",typescript:"TypeScript",html:"HTML",css:"CSS",csv:"CSV",json:"JSON",api:"API",github:"GitHub",python:"Python",sql:"SQL",ai:"AI",ios:"iOS",chatgpt:"ChatGPT",openai:"OpenAI"};
+  function fixCase(x){return x.replace(/\bi\b(?!\.e)/g,"I").replace(/\b[A-Za-z]+\b/g,function(w){var k=w.toLowerCase();return PN[k]&&(w===k||w===cap(k))?PN[k]:w})}
+  function pickFacts(f,n){if(f.length<=n||n<2)return f.slice(0,n);var w=-1;f.forEach(function(x,i){if(w<0&&i>0&&/\b(because|so that|since|why)\b/i.test(x))w=i});var ix=[0];if(w>0)ix.push(w);for(var i=1;i<f.length&&ix.length<n;i++)if(ix.indexOf(i)<0)ix.push(i);ix.sort(function(a,b){return a-b});return ix.map(function(i){return f[i]})}
   function guess(x){return /feedback|advice|thoughts|input|would love|^(i\s+|i'm\s+|i am\s+)?(want|would like|need|am looking for|looking for)\b/i.test(x)?"a":/learn|lesson|realiz|mistake|surpris|biggest|taught|never again/i.test(x)?"l":"f"}
   function renderRead(){
     var box=$("readout"),all=$("notes").value.trim().length<15?[]:parse().all;box.innerHTML="";$("readbox").hidden=!all.length;
@@ -271,8 +275,8 @@ details.add input{width:100%;margin-top:8px;font:inherit;color:var(--text);backg
     var raw=$("notes").value.replace(/\r/g,"");
     var parts=raw.replace(/\b(e\.g|i\.e|vs)\./gi,function(m){return m.replace(/\./g,"\u0001")}).replace(/([.!?])[ \t]+/g,"$1\n").split(/\n+|;\s*/).map(function(x){x=x.replace(/\u0001/g,".");
       x=x.replace(/^\s*([-*\u2022]|\d+[.)])\s+/,"").replace(/[.!?\s]+$/,"").trim();
-      if(/^took\b/i.test(x))x="It took me"+x.slice(4);else if(/^(promoted|selected|awarded|invited|nominated)\b/i.test(x))x="I was "+lc(x);else if(/^(joined|accepted|won|received|completed|passed|earned|moved|graduated|published|presented|built|made|created|wrote|launched|shipped|started|finished|spent|learned|fixed|tested|designed|developed|got|tried|ran|found)\b/i.test(x))x="I "+lc(x);
-      return cap(x.replace(/^e\.g\.\s*/i,"For example, ").replace(/^i\.e\.\s*/i,"That is, "))}).filter(function(x){return x.length>2});
+      if(/^took\b/i.test(x))x="It took me"+x.slice(4);else if(/^(promoted|selected|awarded|invited|nominated)\b/i.test(x))x="I was "+lc(x);else if(/^(joined|accepted|won|received|completed|passed|earned|moved|graduated|published|presented|built|made|created|wrote|launched|shipped|started|finished|spent|learned|fixed|tested|designed|developed|got|tried|ran|found)\b/i.test(x))x="I "+lc(x);else if(THIRD.test(x))x="It "+lc(x);
+      return cap(fixCase(x.replace(/^e\.g\.\s*/i,"For example, ").replace(/^i\.e\.\s*/i,"That is, ")))}).filter(function(x){return x.length>2});
     var f=[],l=[],a=[],all=[];
     parts.forEach(function(x){
       var k=OVR[x]||guess(x);all.push({t:x,k:k});(k==="a"?a:k==="l"?l:f).push(x)});
@@ -284,14 +288,14 @@ details.add input{width:100%;margin-top:8px;font:inherit;color:var(--text);backg
   function tags(){
     var raw=$("notes").value,out=techList().map(function(t){return"#"+cap(t.replace(/[^A-Za-z0-9]/g,""))}).filter(function(t){return t.length>1});
     (raw.match(/\b[A-Z]{2,6}\b/g)||[]).forEach(function(a){if(out.indexOf("#"+a)<0)out.push("#"+a)});
-    var c={};(raw.toLowerCase().match(/[a-z]{8,}/g)||[]).forEach(function(w){if(STOP.indexOf(w)<0&&!/(ing|ed|ly)$/.test(w))c[w]=(c[w]||0)+1});
-    Object.keys(c).sort(function(x,y){return c[y]-c[x]||y.length-x.length}).forEach(function(w){out.push("#"+cap(w))});
+    var c={};(raw.toLowerCase().match(/[a-z]{8,}/g)||[]).forEach(function(w){if(STOP.indexOf(w)<0&&w!=="linkedin"&&!THIRD.test(w)&&!/(ing|ed|ly)$/.test(w))c[w]=(c[w]||0)+1});
+    Object.keys(c).sort(function(x,y){return c[y]-c[x]||y.length-x.length}).forEach(function(w){out.push("#"+(PN[w]||cap(w)))});
     var ap={"Developers":"#Developers","Data folks":"#DataCommunity"}[sel.aud];var TT={"Achievement":"#Milestone","Job update":"#CareerUpdate","Lesson":"#Learning","Hiring":"#Hiring"}[sel.type];out=out.slice(0,(ap?2:3)-(TT?1:0));if(ap)out.push(ap);if(TT)out.push(TT);if(!TT&&/\b(built|build|made|created|launched|shipped|project|tool|app)\b/i.test(raw))out.push("#BuildInPublic");return out.join(" ");
   }
   function build(){skipCta=false;
     var p=parse(),t=sel.tone,L=sel.len,emo=$("emo").checked,bul=$("bul").checked,out=[];
     var nf=[1,3,9][L],nl=[1,2,9][L];
-    var facts=p.f.slice(0,nf),les=p.l.slice(0,nl),tl=techList(),lead="";
+    var facts=pickFacts(p.f,nf),les=p.l.slice(0,nl),tl=techList(),lead="";
     var dw=$("d_wrong").value.trim(),dn=$("d_num").value.trim(),dh=$("d_who").value.trim();if(dw)facts.push(cap(dw));if(dn)facts.push(cap(dn));if(dh)facts.push("It's for "+lc(dh));
     if(tl.length)facts.push("Built with "+joinList(tl));
     if(t==="Bold & punchy"&&les.length&&!bul)lead=cap(les.shift().replace(/^[A-Za-z ]{3,25}:\s*/,""));
